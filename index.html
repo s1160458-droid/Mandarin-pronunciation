@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>语言实验 / ဘာသာစကား စမ်းသပ်မှု</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Myanmar:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--c1:#2c5f7c;--c1l:#e8f0f5;--c2:#d4a853;--bg:#f7f8fa;--tx:#333;--bd:#ccc;--err:#c0392b}
+body{font-family:'Noto Sans SC','Noto Sans Myanmar','Noto Sans',sans-serif;background:var(--bg);color:var(--tx);display:flex;justify-content:center;min-height:100vh;padding:20px 10px}
+#app{width:100%;max-width:860px}
+.page{display:none;animation:fadeIn .3s}.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+h2{color:var(--c1);border-bottom:2px solid var(--c2);padding-bottom:8px;margin:10px 0 16px;font-size:20px}
+h3{color:var(--c1);margin:16px 0 8px;font-size:17px;line-height:1.6}
+.ml{font-weight:400;color:#555;font-size:14px;display:block;margin-bottom:6px;line-height:1.6}
+.fg{margin-bottom:14px}.fg>label{display:block;font-weight:700;margin-bottom:4px;font-size:15px;line-height:1.6}
+.fr{display:flex;gap:16px;flex-wrap:wrap}.fr>.fg{flex:1;min-width:200px}
+input[type=text],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:15px;font-family:inherit;box-sizing:border-box;background:#fff}
+select{cursor:pointer}textarea{resize:vertical;min-height:60px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 2px var(--c1l)}
+.dr{display:flex;gap:8px}.dr select{flex:1}
+.pt{width:100%;border-collapse:collapse;margin:8px 0}
+.pt th,.pt td{border:1px solid var(--bd);padding:6px 10px;text-align:center;font-size:14px}
+.pt th{background:var(--c1l)}
+.pt select{border:none;background:transparent;font-size:14px;text-align:center;width:100%}
+.sep{border:none;border-top:2px solid var(--c2);margin:20px 0}
+.cg{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.ci{display:flex;align-items:center;gap:6px;background:#f5f5f5;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:14px}
+.ci input[type=checkbox]{width:16px;height:16px;accent-color:var(--c1)}
+.inst{background:var(--c1l);padding:10px 14px;border-radius:8px;border-left:4px solid var(--c1);margin:10px 0;font-size:14px;line-height:1.7}
+.wc{text-align:center;padding:30px 20px}
+.wc img{max-width:100%;max-height:500px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);margin-bottom:20px}
+.ty{text-align:center;padding:40px 20px}.ty h2{border:none;font-size:28px}
+.rg{margin-bottom:10px;padding:8px 12px;background:#f5f5f5;border-radius:8px}
+.rg label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+.rg .rl{font-size:12px;color:#888;margin-top:2px}
+.nav{display:flex;justify-content:space-between;margin-top:20px;padding:10px 0;border-top:1px solid #eee}
+.btn{padding:12px 36px;border:none;border-radius:8px;font-size:16px;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn-next{background:var(--c1);color:#fff}.btn-next:hover{background:#1d4a5e}
+.btn-prev{background:#e0e0e0;color:#333}.btn-prev:hover{background:#ccc}
+.btn-go{background:#27ae60;color:#fff;font-size:18px;padding:14px 48px}.btn-go:hover{background:#219a52}
+.errmsg{color:var(--err);font-size:14px;font-weight:700;margin-top:8px;padding:8px 12px;background:#fdecea;border-radius:6px;display:none}
+.invalid{border-color:var(--err)!important;box-shadow:0 0 0 2px rgba(192,57,43,.15)!important}
+.oi{display:none;margin-top:4px}.oi.show{display:block}
+.progress-bar{height:6px;background:#e0e0e0;border-radius:3px;margin-bottom:16px;overflow:hidden}
+.progress-fill{height:100%;background:var(--c1);border-radius:3px;transition:width .3s}
+.pinyin-display{font-family:'Noto Sans',sans-serif;font-size:80px;font-weight:700;color:var(--c1);margin:40px 0;letter-spacing:6px;min-height:120px;display:flex;align-items:center;justify-content:center;line-height:1.4}
+.rec-container{text-align:center;padding:20px}
+.rec-status{font-size:16px;margin:12px 0}
+.rec-dot{display:inline-block;width:14px;height:14px;background:#c0392b;border-radius:50%;margin-right:8px;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.block-rest{text-align:center;padding:50px 20px}
+.block-rest h2{border:none;font-size:24px;margin-bottom:16px}
+.warn-box{background:#fff3cd;border:2px solid #ffc107;border-radius:8px;padding:16px;margin:20px auto;max-width:500px;font-size:15px;line-height:1.8}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="progress-bar"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
+<div id="pages"></div>
+</div>
+<script>
+
+var MN=['1月/ဇန်နဝါရီ','2月/ဖေဖော်ဝါရီ','3月/မတ်','4月/ဧပြီ','5月/မေ','6月/ဇွန်','7月/ဇူလိုင်','8月/ဩဂုတ်','9月/စက်တင်ဘာ','10月/အောက်တိုဘာ','11月/နိုဝင်ဘာ','12月/ဒီဇင်ဘာ'];
+function DD(p,r){var q=r?'data-req="1"':'';var y='<option value="">-- 年/နှစ် --</option>';for(var i=2026;i>=1950;i--)y+='<option value="'+i+'">'+i+'</option>';var m='<option value="">-- 月/လ --</option>';for(var i=0;i<12;i++)m+='<option value="'+(i+1)+'">'+MN[i]+'</option>';var d='<option value="">-- 日/ရက် --</option>';for(var i=1;i<=31;i++)d+='<option value="'+i+'">'+i+'</option>';return '<div class="dr"><select name="'+p+'_year" '+q+'>'+y+'</select><select name="'+p+'_month" '+q+'>'+m+'</select><select name="'+p+'_day" '+q+'>'+d+'</select></div>';}
+function LD(n,r){var q=r?'data-req="1"':'';return '<select name="'+n+'" '+q+' onchange="togOther(this)"><option value="">-- 请选择/ရွေးပါ --</option><option value="mandarin">普通话/汉语/တရုတ်စံဘာသာ</option><option value="burmese">缅甸语/မြန်မာဘာသာ</option><option value="english">英语/အင်္ဂလိပ်</option><option value="other">其他/အခြား</option></select><input type="text" class="oi" name="'+n+'_other" placeholder="请填写/ရေးပါ">';}
+function togOther(el){var o=el.parentNode.querySelector('.oi');if(o)o.className=el.value==='other'?'oi show':'oi';}
+function togHsk(el){document.getElementById("hskLv").style.display=el.value==="yes"?"block":"none";}
+function RS(n,l,lo,hi){var o='<option value="">-- 选择/ရွေးပါ --</option>';for(var i=1;i<=10;i++)o+='<option value="'+i+'">'+i+'</option>';return '<div class="rg"><label>'+l+'</label><select name="'+n+'" data-req="1" style="width:auto;min-width:120px">'+o+'</select><div class="rl">1='+lo+' / 10='+hi+'</div></div>';}
+function PR(p,i,r){var q=r?'data-req="1"':'';var o='<option value="">--</option>';for(var v=0;v<=100;v+=5)o+='<option value="'+v+'">'+v+'%</option>';return '<tr><td>'+LD(p+'_lang'+i,r)+'</td><td><select name="'+p+'_pct'+i+'" '+q+'>'+o+'</select></td></tr>';}
+function PT(p){return '<table class="pt"><tr><th>语言名称/ဘာသာစကားအမည်</th><th>百分比/%</th></tr>'+PR(p,1,true)+PR(p,2,false)+PR(p,3,false)+PR(p,4,false)+'</table><p style="text-align:right;font-weight:700;font-size:14px">合计=100%/စုစုပေါင်း=၁၀၀%</p>';}
+function AD(n,r){var q=r?'data-req="1"':'';var o='<option value="">--</option>';for(var i=0;i<40;i++)o+='<option value="'+i+'">'+i+'</option>';return '<select name="'+n+'" '+q+'>'+o+'</select>';}
+function YM(n){var o='<option value="">--</option>';for(var i=0;i<40;i++)o+='<option value="'+i+'">'+i+'</option>';return '<select name="'+n+'" data-req="1">'+o+'</select>';}
+function MM(n){var o='<option value="">--</option>';for(var i=0;i<12;i++)o+='<option value="'+i+'">'+i+'</option>';return '<select name="'+n+'" data-req="1">'+o+'</select>';}
+var co='<option value="">-- 请选择/ရွေးပါ --</option><option value="burmese">缅甸文化/မြန်မာယဉ်ကျေးမှု</option><option value="chinese">中国文化/တရုတ်ယဉ်ကျေးမှု</option><option value="western">西方文化/အနောက်တိုင်းယဉ်ကျေးမှု</option><option value="other">其他/အခြား</option>';
+var sco='<option value="">--</option>';for(var i=0;i<=10;i++)sco+='<option value="'+i+'">'+i+'</option>';
+var eyo='<option value="">-- 请选择/ရွေးပါ --</option>';for(var i=1;i<=25;i++)eyo+='<option value="'+i+'">'+i+' 年/နှစ်</option>';
+
+
+function BLS(num,dz,dm){var p='L'+num;return '<h2>语言 '+num+' / ဘာသာစကား '+num+'</h2><div class="inst">'+dz+'<br>'+dm+'</div>'+
+'<div class="fr"><div class="fg"><label>语言名称<span class="ml">ဘာသာစကားအမည်</span></label>'+LD(p+'_name',true)+'</div>'+
+'<div class="fg"><label>这是我的第___语言<span class="ml">ကျွန်ုပ်၏ _____ ဘာသာစကား</span></label><select name="'+p+'_ord" data-req="1"><option value="">-- 请选择/ရွေးပါ --</option><option value="1">第1/ပထမ</option><option value="2">第2/ဒုတိယ</option><option value="3">第3/တတိယ</option><option value="4">第4/စတုတ္ထ</option></select></div></div>'+
+'<hr class="sep"><h3>(1) 你在多大的时候：<span class="ml">(၁) သင် အသက်မည်မျှတွင်:</span></h3>'+
+'<table class="pt"><tr><th></th><th>开始说<br>စပြောသည်</th><th>说得好<br>ကောင်းစွာပြော</th><th>开始读<br>စဖတ်သည်</th><th>读得好<br>ကောင်းစွာဖတ်</th></tr>'+
+'<tr><td><b>年龄(岁)<br><span style="font-size:12px">အသက်(နှစ်)</span></b></td><td>'+AD(p+'_as1',true)+'</td><td>'+AD(p+'_as2',true)+'</td><td>'+AD(p+'_ar1',true)+'</td><td>'+AD(p+'_ar2',true)+'</td></tr></table>'+
+'<hr class="sep"><h3>(2) 在每种环境用多长时间？<span class="ml">(၂) ပတ်ဝန်းကျင်တစ်ခုစီတွင် မည်မျှကြာ?</span></h3>'+
+'<table class="pt"><tr><th>环境/ပတ်ဝန်းကျင်</th><th>年/နှစ်</th><th>月/လ</th></tr>'+
+'<tr><td style="text-align:left">说这种语言的国家<br><span style="font-size:12px">ဤဘာသာစကား ပြောသော နိုင်ငံ</span></td><td>'+YM(p+'_ec_y')+'</td><td>'+MM(p+'_ec_m')+'</td></tr>'+
+'<tr><td style="text-align:left">说这种语言的家庭<br><span style="font-size:12px">ဤဘာသာစကား ပြောသော မိသားစု</span></td><td>'+YM(p+'_ef_y')+'</td><td>'+MM(p+'_ef_m')+'</td></tr>'+
+'<tr><td style="text-align:left">说这种语言的学校/单位<br><span style="font-size:12px">ကျောင်း/အလုပ်</span></td><td>'+YM(p+'_es_y')+'</td><td>'+MM(p+'_es_m')+'</td></tr></table>'+
+'<hr class="sep"><h3>(3) 请给自己的能力打分<span class="ml">(၃) သင့်ကိုယ်သင် အမှတ်ပေးပါ</span></h3>'+
+RS(p+'_ab_sp','说/စကားပြောခြင်း','很差/အလွန်ညံ့','非常好/အလွန်ကောင်း')+
+RS(p+'_ab_li','听懂别人说话/နားထောင်နားလည်ခြင်း','很差/အလွန်ညံ့','非常好/အလွန်ကောင်း')+
+RS(p+'_ab_rd','读/ဖတ်ခြင်း','很差/အလွန်ညံ့','非常好/အလွန်ကောင်း')+
+'<hr class="sep"><h3>(4) 这些方法对你学语言帮助有多大？<span class="ml">(၄) မည်မျှ အကူအညီဖြစ်ခဲ့သနည်း</span></h3>'+
+RS(p+'_lm_fr','和朋友交流/သူငယ်ချင်းများနှင့် စကားပြော','没帮助/မကူညီ','帮助很大/အလွန်ကူညီ')+
+RS(p+'_lm_fm','和家人交流/မိသားစုနှင့် စကားပြော','没帮助/မကူညီ','帮助很大/အလွန်ကူညီ')+
+RS(p+'_lm_bk','看书阅读/စာဖတ်ခြင်း','没帮助/မကူညီ','帮助很大/အလွန်ကူညီ')+
+RS(p+'_lm_au','听录音/自学/အသံဖိုင်/ကိုယ်တိုင်လေ့လာ','没帮助/မကူညီ','帮助很大/အလွန်ကူညီ')+
+RS(p+'_lm_tv','看电视/ရုပ်မြင်သံကြား','没帮助/မကူညီ','帮助很大/အလွန်ကူညီ')+
+RS(p+'_lm_ra','听广播/ရေဒီယို','没帮助/မကူညီ','帮助很大/အလွန်ကူညီ')+
+'<hr class="sep"><h3>(5) 现在通过哪些方式接触这种语言？<span class="ml">(၅) လက်ရှိ မည်မျှ ထိတွေ့သနည်း</span></h3>'+
+RS(p+'_ex_fr','和朋友交流/သူငယ်ချင်းများ','从不/လုံးဝမသုံး','一直都用/အမြဲသုံး')+
+RS(p+'_ex_fm','和家人交流/မိသားစု','从不/လုံးဝမသုံး','一直都用/အမြဲသုံး')+
+RS(p+'_ex_tv','看电视/ရုပ်မြင်သံကြား','从不/လုံးဝမသုံး','一直都用/အမြဲသုံး')+
+RS(p+'_ex_ra','听广播/ရေဒီယို','从不/လုံးဝမသုံး','一直都用/အမြဲသုံး')+
+RS(p+'_ex_bk','看书阅读/စာဖတ်ခြင်း','从不/လုံးဝမသုံး','一直都用/အမြဲသုံး')+
+RS(p+'_ex_au','听录音/自学/ကိုယ်တိုင်လေ့လာ','从不/လုံးဝမသုံး','一直都用/အမြဲသုံး')+
+'<hr class="sep"><h3>(6) 口音有多重？<span class="ml">(၆) သင့်လေယူလေသီး မည်မျှ ပြင်းထန်သနည်း</span></h3>'+
+RS(p+'_acc','口音程度/လေယူလေသီး','没有口音/လေယူလေသီးမရှိ','口音很重/အလွန်ပြင်းထန်')+
+'<h3>(7) 别人多久认为你不是母语者？<span class="ml">(၇) မိခင်ဘာသာ မဟုတ်ဟု မည်မျှ သတိထားမိသနည်း</span></h3>'+
+RS(p+'_acc2','被注意程度/သတိထားမိမှု','从来不会/ဘယ်တော့မှ','总是这样/အမြဲတမ်း');}
+
+
+var pages=[],wantsL3=false;
+
+// P0: Welcome
+pages.push({html:'<div class="wc"><h2>语言经历和语言水平问卷</h2><p style="font-size:18px">ဘာသာစကား အတွေ့အကြုံနှင့် ကျွမ်းကျင်မှု မေးခွန်းလွှာ</p><p style="color:#888;font-size:14px">LEAP-Q (Marian et al., 2007)</p><div style="background:#fdecea;border:2px solid #c0392b;border-radius:8px;padding:14px 18px;margin:16px auto;max-width:650px;text-align:left;font-size:15px;line-height:1.9"><b style="color:#c0392b;font-size:16px">⚠ 请将此网址复制到浏览器中打开。实验完成后请确保压缩包下载完成并成功转发给实验者，十分感谢！</b><br><b style="color:#c0392b;font-size:16px">⚠ ဤလင့်ခ်ကို ဘရောက်ဆာတွင် ကူးထည့်ဖွင့်ပါ။ စမ်းသပ်မှု ပြီးဆုံးပြီးနောက် ချုံ့ဖိုင် ဒေါင်းလုဒ် ပြီးကြောင်း သေချာစေပြီး စမ်းသပ်သူထံ ပြန်ပို့ပေးပါ၊ အလွန်ကျေးဇူးတင်ပါသည်!</b></div><div class="inst" style="text-align:left;max-width:650px;margin:12px auto">本次实验分为两个部分，第一部分为问卷填写，第二部分发出声音读普通话拼音。<br>ဤစမ်းသပ်မှုကို အပိုင်းနှစ်ပိုင်း ခွဲထားပါသည်။ ပထမအပိုင်းသည် မေးခွန်းလွှာဖြည့်စွက်ခြင်းဖြစ်ပြီး၊ ဒုတိယအပိုင်းသည် ဖိန်းယင်းကို အသံထွက်ဖတ်ရှုခြင်းဖြစ်ပါသည်။</div></div>',v:false});
+
+// P1: Basic info + HSK
+pages.push({html:'<h2>基本信息 / အခြေခံအချက်အလက်များ</h2>'+
+'<div class="fr"><div class="fg"><label>姓<span class="ml">မျိုးနွယ်အမည်</span></label><input type="text" name="surname" data-req="1"></div>'+
+'<div class="fg"><label>名<span class="ml">ပေးထားသောအမည်</span></label><input type="text" name="given_name" data-req="1"></div></div>'+
+'<div class="fr"><div class="fg"><label>年龄<span class="ml">အသက်</span></label><select name="age" data-req="1"><option value="">-- 请选择/ရွေးပါ --</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option><option value="60">60</option><option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="65">65</option><option value="66">66</option><option value="67">67</option><option value="68">68</option><option value="69">69</option></select></div>'+
+'<div class="fg"><label>性别<span class="ml">ကျား/မ</span></label><select name="gender" data-req="1"><option value="">-- 请选择/ရွေးပါ --</option><option value="male">男/ကျား</option><option value="female">女/မ</option><option value="other">其他/အခြား</option></select></div></div>'+
+'<div class="fr"><div class="fg"><label>出生日期<span class="ml">မွေးသက္ကရာဇ်</span></label>'+DD('dob',true)+'</div>'+
+'<div class="fg"><label>填写日期<span class="ml">ရက်စွဲ</span></label>'+DD('today',true)+'</div></div>'+
+'<hr class="sep"><h3>HSK等级 / HSK အဆင့်</h3>'+
+'<div class="fr"><div class="fg"><label>是否考过HSK？<span class="ml">HSK စာမေးပွဲ ဖြေဖူးပါသလား?</span></label>'+
+'<select name="hsk_has" data-req="1" onchange="togHsk(this)">'+
+'<option value="">-- 请选择/ရွေးပါ --</option><option value="yes">有/ရှိ</option><option value="no">没有/မရှိ</option></select></div>'+
+'<div class="fg" id="hskLv" style="display:none"><label>HSK等级<span class="ml">HSK အဆင့်</span></label>'+
+'<select name="hsk_level"><option value="">-- 请选择/ရွေးပါ --</option>'+
+'<option value="1">HSK 1</option><option value="2">HSK 2</option><option value="3">HSK 3</option>'+
+'<option value="4">HSK 4</option><option value="5">HSK 5</option><option value="6">HSK 6</option>'+
+'<option value="7-9">HSK 7-9</option></select></div></div>',v:true});
+
+
+// P2: Q1 Q2
+pages.push({html:'<h2>语言背景 / ဘာသာစကား နောက်ခံ</h2>'+
+'<h3>(1) 请按使用频率排序<span class="ml">(၁) အသုံးများသည့်အစဉ်အတိုင်း ရေးပါ</span></h3>'+
+'<div class="fg"><label>第1语言(最常用)/ဘာသာစကား ၁</label>'+LD('q1_l1',true)+'</div>'+
+'<div class="fg"><label>第2语言/ဘာသာစကား ၂</label>'+LD('q1_l2',true)+'</div>'+
+'<div class="fg"><label>第3语言(如有)/ဘာသာစကား ၃ (ရှိပါက)</label>'+LD('q1_l3',false)+'</div>'+
+'<hr class="sep">'+
+'<h3>(2) 请按学习顺序排序（母语第一）<span class="ml">(၂) သင်ယူခဲ့သည့်အစဉ်အတိုင်း (မိခင်ဘာသာကို ပထမ)</span></h3>'+
+'<div class="fg"><label>第1语言(母语)/ဘာသာစကား ၁ (မိခင်ဘာသာ)</label>'+LD('q2_l1',true)+'</div>'+
+'<div class="fg"><label>第2语言/ဘာသာစကား ၂</label>'+LD('q2_l2',true)+'</div>'+
+'<div class="fg"><label>第3语言(如有)/ဘာသာစကား ၃ (ရှိပါက)</label>'+LD('q2_l3',false)+'</div>',v:true});
+
+// P3: Q3 Q4 Q5
+pages.push({html:'<h3>(3) 每天接触每种语言占百分之几？<span class="ml">(၃) နေ့စဉ် မည်မျှ သုံးသနည်း (စုစုပေါင်း=၁၀၀%)</span></h3>'+PT('q3')+
+'<hr class="sep"><h3>(4) 选读书/文章用哪种语言？<span class="ml">(၄) စာဖတ်ရန် ရွေးချယ်ခွင့်ရလျှင်?</span></h3>'+PT('q4')+
+'<hr class="sep"><h3>(5) 自由选择说话语言？<span class="ml">(၅) စကားပြော ရွေးချယ်ခွင့်ရလျှင်?</span></h3>'+PT('q5'),v:true});
+
+// P4: Q6-Q9
+pages.push({html:'<h3>(6) 你认同的文化，0-10打分<span class="ml">(၆) ယဉ်ကျေးမှုများ ၀-၁၀ အမှတ်ပေးပါ</span></h3>'+
+'<table class="pt"><tr><th>文化/ယဉ်ကျေးမှု</th><th>认同(0-10)/အမှတ်</th></tr>'+
+'<tr><td><select name="q6_c1">'+co+'</select></td><td><select name="q6_s1">'+sco+'</select></td></tr>'+
+'<tr><td><select name="q6_c2">'+co+'</select></td><td><select name="q6_s2">'+sco+'</select></td></tr>'+
+'<tr><td><select name="q6_c3">'+co+'</select></td><td><select name="q6_s3">'+sco+'</select></td></tr></table>'+
+'<hr class="sep"><h3>(7) 最高学历<span class="ml">(၇) အမြင့်ဆုံး ပညာအရည်အချင်း</span></h3>'+
+'<div class="fg"><label>上了多少年学？<span class="ml">ကျောင်းတက်သည့်နှစ်</span></label><select name="q7_years" data-req="1">'+eyo+'</select></div>'+
+'<div class="fg"><label>最高学历<span class="ml">အမြင့်ဆုံးပညာ</span></label><select name="q7_edu" data-req="1"><option value="">-- 请选择/ရွေးပါ --</option>'+
+'<option value="below_mid">初中以下/အထက်တန်းအောက်</option><option value="high">高中/အထက်တန်း</option>'+
+'<option value="voc">职业学校/သက်မွေးပညာ</option><option value="dip">大专/ဒီပလိုမာ</option>'+
+'<option value="ba">本科/ဘွဲ့ကြို</option><option value="ma_cur">硕士在读/မဟာဘွဲ့(မပြီးသေး)</option>'+
+'<option value="ma">硕士/မဟာဘွဲ့</option><option value="phd">博士/ပါရဂူဘွဲ့</option></select></div>'+
+'<hr class="sep"><h3>(8) 你什么时候来中国的？<span class="ml">(၈) သင် တရုတ်သို့ မည်သည့်အချိန်က ရောက်ခဲ့သနည်း</span></h3>'+
+'<div class="fg"><label>日期/ရက်စွဲ</label>'+DD('q8_arr',false)+'</div>'+
+'<div class="fg"><label>去过其他国家？<span class="ml">အခြားနိုင်ငံ သွားဖူးပါက ရေးပါ</span></label><textarea name="q8_other" placeholder="例如/ဥပမာ: Thailand, 2020-2022"></textarea></div>'+
+'<hr class="sep"><h3>(9) 你有没有下面的情况？<span class="ml">(၉) အောက်ပါအချက်များ ရှိပါသလား</span></h3>'+
+'<div class="cg"><label class="ci"><input type="checkbox" name="q9_vis" value="yes">视力问题/အမြင်အာရုံ</label>'+
+'<label class="ci"><input type="checkbox" name="q9_hear" value="yes">听力问题/အကြားအာရုံ</label>'+
+'<label class="ci"><input type="checkbox" name="q9_spch" value="yes">语言障碍/စကားပြော</label>'+
+'<label class="ci"><input type="checkbox" name="q9_learn" value="yes">学习困难/သင်ယူမှု</label></div>'+
+'<div class="fg"><label>请说明<span class="ml">ရှင်းပြပါ</span></label><textarea name="q9_detail" placeholder="如有请说明/ရှိပါက ရှင်းပြပါ"></textarea></div>',v:true});
+
+// P5: Lang 1
+pages.push({html:BLS(1,'（语言1 = 你最早学会的语言，通常是母语）','(ဘာသာစကား ၁ = အစောဆုံး သင်ယူခဲ့သော မိခင်ဘာသာစကား)'),v:true});
+// P6: Lang 2
+pages.push({html:BLS(2,'（语言2 = 你第二个学会的语言）','(ဘာသာစကား ၂ = ဒုတိယမြောက် သင်ယူခဲ့သော ဘာသာစကား)'),v:true});
+
+// P7: Ask lang 3
+pages.push({html:'<div style="text-align:center;padding:40px 0"><h2 style="border:none">你还会其他语言吗？<br><span style="font-weight:400;font-size:16px">အခြား ဘာသာစကားများ တတ်ကျွမ်းပါသလား။</span></h2>'+
+'<p style="margin:16px 0">还会第三种语言点"是"，没有则点"进入第二部分"。<br>တတိယ ဘာသာစကား တတ်ကျွမ်းပါက "ဟုတ်ကဲ့" ကို နှိပ်ပါ။</p>'+
+'<div style="display:flex;gap:16px;justify-content:center;margin-top:24px">'+
+'<button class="btn btn-next" onclick="wantsL3=true;goNext()">是，继续/ဟုတ်ကဲ့</button>'+
+'<button class="btn btn-go" onclick="wantsL3=false;skipToTrans()">没有了，进入第二部分/မရှိပါ</button></div></div>',v:false,customNav:true});
+
+// P8: Lang 3 (conditional)
+pages.push({html:BLS(3,'（语言3 = 你第三个学会的语言）','(ဘာသာစကား ၃ = တတိယမြောက် သင်ယူခဲ့သော ဘာသာစကား)'),v:true,cond:function(){return wantsL3;}});
+
+// P9: Transition
+var transIdx=pages.length;
+pages.push({html:'<div style="text-align:center;padding:40px 20px"><h2 style="border:none;font-size:26px">第二部分：语音朗读<br><span style="font-size:18px;font-weight:400">ဒုတိယအပိုင်း: အသံထွက် ဖတ်ရှုခြင်း</span></h2>'+
+'<div class="inst" style="text-align:left;max-width:650px;margin:24px auto;font-size:16px;line-height:2">'+
+'<b>请在安静的房间里，大声朗读屏幕上出现的汉语拼音。</b><br>'+
+'<b>ကျေးဇူးပြု၍ တိတ်ဆိတ်သော အခန်းတွင် ဖန်သားပြင်ပေါ်ရှိ ဖိန်းယင်းကို အသံကျယ်ကျယ်ဖြင့် ဖတ်ပါ။</b><br><br>'+
+'每次屏幕上出现一个拼音，请朗读后点击"下一个"。每个模块全程录音，模块之间可以休息。<br>'+
+'ဖိန်းယင်းတစ်ခု ပေါ်လာပါမည်။ ဖတ်ပြီးလျှင် "နောက်တစ်ခု" နှိပ်ပါ။ မော်ဂျူးတစ်ခုစီ ကြားတွင် နားနိုင်ပါသည်။<br><br>'+
+'共4个模块：元音(36项)、辅音(62项)、声调(12项)、双音节词(50项)。<br>'+
+'မော်ဂျူး ၄ ခု: သရ(၃၆ခု)၊ ဗျည်း(၆၂ခု)၊ အသံနိမ့်မြင့်(၁၂ခု)၊ နှစ်ဝါစီလုံး(၅၀ခု)။<br><br>'+
+'<span style="color:var(--err)">⚠ 点击下方按钮后浏览器会请求麦克风权限，请点"允许"。<br>'+
+'⚠ အောက်ပါခလုတ်ကို နှိပ်သောအခါ မိုက်ခရိုဖုန်း ခွင့်ပြုချက် တောင်းပါမည်၊ "Allow/ခွင့်ပြု" ကို နှိပ်ပါ။</span></div></div>',v:false,isTrans:true});
+
+
+/* ========== STIMULI ========== */
+var stimuli={
+vowels:{zh:'元音',my:'သရ',items:['ā','ō','yī','wū','yē','yū','ēr','ē','yā','wā','wō','yāo','yōu','wāi','wēi','yuē','yuān','yūn','yōng','yān','wān','yāng','wāng','ēi','āi','āo','ōu','ān','ēn','yīn','wēn','āng','ēng','yīng','ōng','wēng']},
+consonants:{zh:'辅音',my:'ဗျည်း',items:['bā','bī','bū','pā','pī','pū','dā','dī','dū','tā','tī','tū','gā','gāi','gū','kā','kāi','kū','mā','mī','mū','nā','nī','nū','lā','lī','lū','hā','hāi','hū','jī','jiā','jū','qī','qiā','qū','xī','xiā','xū','fā','fēi','fū','zā','zī','zū','cā','cī','cū','zhā','zhī','zhū','chā','chī','chū','shā','shī','shū','rī','rū','sā','sī','sū']},
+tones:{zh:'声调',my:'အသံနိမ့်မြင့်',items:['ā','yī','wū','á','yí','wú','ǎ','yǐ','wǔ','à','yì','wù']},
+disyllabic:{zh:'双音节词',my:'နှစ်ဝါစီလုံးစာလုံး',items:['jié guǒ','fǎng wèn','lǚ xíng','yīn yún','jiàn quán','shàng bān','jié yuē','rén lèi','xiāo shī','gǎn kuài','mǎi le','yī cì','hàn yǔ','fēn shǒu','wài huì','zhēn zhèng','jiāo liú','hǎi fēng','qīng chūn','dì tú','huār','duō shǎo','lěng shuǐ','cóng lái','cháng chéng','xīn qíng','shuō huà','mó pò','jiǎn zhí','chē zhàn','bù rú','shí yī','bì yè','niú nǎi','hěn nán','kuáng huān','hēi bái','tè sè','kǒu chǐ','shí cháng','yī tiān','bù yòng','wǔ cān','xiǎng jiā','zhōng wén','xiāng yān','dà gǔ','qí yú','zì sī','pǎo bù']}
+};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+var blockKeys=['vowels','consonants','tones','disyllabic'];
+var shuffled={};blockKeys.forEach(function(k){shuffled[k]=shuffle(stimuli[k].items.slice());});
+
+/* ========== AUDIO ========== */
+var audioStream=null,recorder=null,recordings=[],curBlock=0,curItem=0,curItems=[];
+
+async function initMic(){
+    try{
+        audioStream=await navigator.mediaDevices.getUserMedia({audio:{sampleRate:44100,channelCount:1,echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+        return true;
+    }catch(e){alert('无法访问麦克风，请允许后刷新页面。\nမိုက်ခရိုဖုန်း ခွင့်ပြုချက် ပေးပြီး စာမျက်နှာ ပြန်ဖွင့်ပါ။');return false;}
+}
+
+function startRec(){
+    if(!audioStream)return;
+    recorder=new RecordRTC(audioStream,{type:'audio',mimeType:'audio/wav',recorderType:RecordRTC.StereoAudioRecorder,numberOfAudioChannels:1,desiredSampRate:44100});
+    recorder.startRecording();
+    console.log('Recording started for block: '+blockKeys[curBlock]);
+}
+
+function stopRec(){
+    return new Promise(function(res){
+        if(!recorder){console.log('No recorder');res(null);return;}
+        try{
+            recorder.stopRecording(function(){
+                var blob=recorder.getBlob();
+                console.log('Recording stopped, blob size: '+blob.size);
+                recorder=null;
+                res(blob);
+            });
+        }catch(e){console.error('Stop error:',e);recorder=null;res(null);}
+    });
+}
+
+/* ========== RENDER ========== */
+var curPage=0,container=document.getElementById('pages');
+for(var i=0;i<pages.length;i++){
+    var d=document.createElement('div');d.className='page';d.id='page'+i;
+    d.innerHTML=pages[i].html+'<div class="errmsg" id="err'+i+'">⚠ 请填写所有必填项后再继续 / လိုအပ်သောအချက်များ ဖြည့်ပါ</div>';
+    if(!pages[i].customNav){
+        var nav='<div class="nav">';
+        if(i>0)nav+='<button class="btn btn-prev" onclick="goPrev()">上一页/နောက်သို့</button>';else nav+='<span></span>';
+        if(pages[i].isTrans)nav+='<button class="btn btn-go" onclick="startPart2()">开始录音测试/အသံဖမ်း စတင်ရန်</button>';
+        else nav+='<button class="btn btn-next" onclick="goNext()">下一页/ရှေ့ဆက်ရန်</button>';
+        nav+='</div>';d.innerHTML+=nav;
+    }
+    container.appendChild(d);
+}
+
+// Block intro
+var introDiv=document.createElement('div');introDiv.className='page';introDiv.id='introPage';
+introDiv.innerHTML='<div class="block-rest"><h2 id="introTitle"></h2><p style="font-size:16px;margin:16px 0;line-height:1.8" id="introMsg"></p><button class="btn btn-go" onclick="beginBlock()">开始录音 ● / အသံဖမ်း စတင်ရန် ●</button></div>';
+container.appendChild(introDiv);
+
+// Recording
+var recDiv=document.createElement('div');recDiv.className='page';recDiv.id='recPage';
+recDiv.innerHTML='<div class="rec-container"><div style="font-size:15px;color:#666;margin-bottom:8px" id="recProg"></div><div style="font-size:16px;margin:8px 0"><span class="rec-dot"></span>录音中/အသံဖမ်းနေသည်</div><div class="pinyin-display" id="pinyinD"></div><div style="margin-top:30px"><button class="btn btn-go" onclick="nextItem()" style="font-size:20px;padding:16px 64px">下一个 ▶ / နောက်တစ်ခု ▶</button></div></div>';
+container.appendChild(recDiv);
+
+// Rest between blocks
+var restDiv=document.createElement('div');restDiv.className='page';restDiv.id='restPage';
+restDiv.innerHTML='<div class="block-rest"><h2 id="restTitle"></h2><p style="font-size:16px;margin:16px 0;line-height:1.8" id="restMsg"></p><button class="btn btn-go" onclick="prepNextBlock()">继续/ဆက်လက်ရန် ▶</button></div>';
+container.appendChild(restDiv);
+
+// Final
+var finDiv=document.createElement('div');finDiv.className='page';finDiv.id='finalPage';
+finDiv.innerHTML='<div class="ty"><h2>实验完成！/ စမ်းသပ်မှု ပြီးဆုံးပါပြီ!</h2><p style="font-size:18px;margin:16px 0">Thank you!</p>'+
+'<div class="warn-box">⚠ <b>请不要关闭此页面！</b>正在打包数据，完成后将自动下载压缩包。<br>⚠ <b>ဤစာမျက်နှာကို မပိတ်ပါနှင့်!</b> ဒေတာ ထုပ်ပိုးနေပါသည်၊ ပြီးဆုံးသောအခါ အလိုအလျောက် ဒေါင်းလုဒ် ရယူပါမည်။</div>'+
+'<p style="margin:20px 0;font-size:16px;color:var(--c1)" id="dlStatus">正在生成问卷数据.../မေးခွန်းလွှာ ဒေတာ ဖန်တီးနေသည်...</p>'+
+'<button class="btn btn-go" id="dlBtn" onclick="doDownload()" style="display:none;margin:10px">重新下载/ထပ်မံ ဒေါင်းလုဒ်</button></div>';
+container.appendChild(finDiv);
+
+/* ========== NAV ========== */
+function showPage(i){curPage=i;document.querySelectorAll('.page').forEach(function(p){p.className='page';});document.getElementById('page'+i).className='page active';window.scrollTo(0,0);document.getElementById('pbar').style.width=Math.round(i/(pages.length+8)*100)+'%';}
+function showEl(id){document.querySelectorAll('.page').forEach(function(p){p.className='page';});document.getElementById(id).className='page active';window.scrollTo(0,0);}
+function validatePage(i){var p=document.getElementById('page'+i),fs=p.querySelectorAll('[data-req="1"]'),ok=true;fs.forEach(function(f){f.classList.remove('invalid');if(!f.value){f.classList.add('invalid');ok=false;}});var e=document.getElementById('err'+i);if(!ok){e.style.display='block';var first=p.querySelector('.invalid');if(first)first.scrollIntoView({behavior:'smooth',block:'center'});}else e.style.display='none';return ok;}
+function goNext(){if(pages[curPage].v&&!validatePage(curPage))return;var n=curPage+1;while(n<pages.length&&pages[n].cond&&!pages[n].cond())n++;if(n<pages.length)showPage(n);}
+function goPrev(){var p=curPage-1;while(p>=0&&pages[p].cond&&!pages[p].cond())p--;if(p>=0)showPage(p);}
+function skipToTrans(){showPage(transIdx);}
+
+/* ========== RECORDING FLOW ========== */
+async function startPart2(){
+    while(!audioStream){
+        var ok=await initMic();
+        if(!ok){
+            var retry=confirm('需要麦克风权限才能继续，请点击确定重试。\nမိုက်ခရိုဖုန်း ခွင့်ပြုချက် လိုအပ်ပါသည်။ OK နှိပ်၍ ထပ်ကြိုးစားပါ။');
+            if(!retry)return;
+        }
+    }
+    curBlock=0;
+    prepNextBlock();
+}
+
+function prepNextBlock(){
+    var key=blockKeys[curBlock];
+    var s=stimuli[key];
+    var n=shuffled[key].length;
+    document.getElementById('introTitle').textContent=s.zh+' / '+s.my;
+    document.getElementById('introMsg').innerHTML=
+        '本模块共 <b>'+n+'</b> 项，请朗读每个拼音后点击"下一个"。<br>'+
+        'ဤမော်ဂျူးတွင် <b>'+n+'</b> ခု ရှိပါသည်။ ဖတ်ပြီးလျှင် "နောက်တစ်ခု" နှိပ်ပါ။<br><br>'+
+        '点击下方按钮开始录音。<br>အောက်ပါခလုတ်ကို နှိပ်၍ အသံဖမ်းမှု စတင်ပါ။';
+    showEl('introPage');
+}
+
+function beginBlock(){
+    curItem=0;
+    curItems=shuffled[blockKeys[curBlock]];
+    startRec();
+    showRecItem();
+}
+
+function showRecItem(){
+    var key=blockKeys[curBlock];
+    var s=stimuli[key];
+    document.getElementById('recProg').textContent=s.zh+' / '+s.my+'  —  '+(curItem+1)+' / '+curItems.length;
+    document.getElementById('pinyinD').textContent=curItems[curItem];
+    showEl('recPage');
+    var pct=50+((curBlock*12.5)+(curItem/curItems.length*12.5));
+    document.getElementById('pbar').style.width=Math.min(95,pct)+'%';
+}
+
+async function nextItem(){
+    curItem++;
+    if(curItem>=curItems.length){
+        // Block done
+        var blob=await stopRec();
+        if(blob&&blob.size>0){
+            recordings.push({name:blockKeys[curBlock]+'.wav',blob:blob});
+            console.log('Saved '+blockKeys[curBlock]+'.wav, size='+blob.size);
+        }else{
+            console.warn('Empty blob for '+blockKeys[curBlock]);
+        }
+        curBlock++;
+        if(curBlock>=blockKeys.length){
+            showEl('finalPage');
+            // Close microphone
+            if(audioStream){audioStream.getTracks().forEach(function(t){t.stop();});audioStream=null;console.log('Microphone closed');}
+            setTimeout(function(){packageData();},500);
+            return;
+        }
+        // Show rest
+        var prev=stimuli[blockKeys[curBlock-1]];
+        var next=stimuli[blockKeys[curBlock]];
+        document.getElementById('restTitle').textContent='模块完成！休息一下 / ပြီးဆုံးပါပြီ! အနားယူပါ';
+        document.getElementById('restMsg').innerHTML=
+            '✓ <b>'+prev.zh+' / '+prev.my+'</b> 模块已完成。<br>'+
+            '✓ <b>'+prev.zh+' / '+prev.my+'</b> မော်ဂျူး ပြီးဆုံးပါပြီ။<br><br>'+
+            '下一个模块：<b>'+next.zh+' / '+next.my+'</b>（共'+shuffled[blockKeys[curBlock]].length+'项）<br>'+
+            'နောက် မော်ဂျူး: <b>'+next.zh+' / '+next.my+'</b> ('+shuffled[blockKeys[curBlock]].length+' ခု)<br><br>'+
+            '准备好了请点击继续。<br>အဆင်သင့်ဖြစ်လျှင် ဆက်လက်ရန် နှိပ်ပါ။';
+        showEl('restPage');
+        return;
+    }
+    showRecItem();
+}
+
+/* ========== PACKAGING ========== */
+var zipBlob=null;
+
+function collectAll(){
+    var d={};
+    document.querySelectorAll('input[name],select[name],textarea[name]').forEach(function(el){
+        if(!wantsL3&&el.name.startsWith('L3_'))return;
+        if(el.type==='checkbox')d[el.name]=el.checked?'yes':'no';
+        else d[el.name]=el.value||'';
+    });
+    return d;
+}
+
+async function packageData(){
+    // Release microphone
+    if(audioStream){audioStream.getTracks().forEach(function(t){t.stop();});audioStream=null;console.log('Microphone released');}
+    var st=document.getElementById('dlStatus');
+    try{
+        st.textContent='正在生成问卷数据.../မေးခွန်းလွှာ ဒေတာ ဖန်တီးနေသည်...';
+        var flat=collectAll();
+        var ws=XLSX.utils.json_to_sheet([flat]);
+        var cols=[];for(var k in flat)cols.push({wch:Math.max(k.length,String(flat[k]).length)+2});
+        ws['!cols']=cols;
+        var wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,'LEAP-Q');
+        var xlData=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+        var pName=(flat.surname||'')+(flat.given_name||'')||'participant';
+
+        st.textContent='正在打包录音文件('+recordings.length+'个).../အသံဖိုင်များ ထုပ်ပိုးနေသည်...';
+        var zip=new JSZip();
+        zip.file('LEAPQ_'+pName+'.xlsx',xlData);
+
+        var af=zip.folder('audio');
+        for(var i=0;i<recordings.length;i++){
+            af.file(recordings[i].name,recordings[i].blob);
+        }
+
+        // Save stimulus order
+        var log='';
+        blockKeys.forEach(function(k){
+            log+='=== '+k+' ('+stimuli[k].zh+') ===\n';
+            shuffled[k].forEach(function(item,idx){log+=(idx+1)+'\t'+item+'\n';});
+            log+='\n';
+        });
+        zip.file('stimulus_order.txt',log);
+
+        st.textContent='正在压缩.../ချုံ့နေသည်...';
+        zipBlob=await zip.generateAsync({type:'blob'},function(m){
+            st.textContent='压缩中 '+Math.round(m.percent)+'%.../ချုံ့နေသည် '+Math.round(m.percent)+'%...';
+        });
+
+        st.textContent='✓ 数据打包完成！正在下载.../✓ ဒေတာ အဆင်သင့်ဖြစ်ပါပြီ! ဒေါင်းလုဒ် စတင်နေသည်...';
+        document.getElementById('dlBtn').style.display='';
+        doDownload();
+    }catch(e){
+        console.error('Package error:',e);
+        st.textContent='❌ 打包出错: '+e.message+'，请点击重新下载按钮。';
+        document.getElementById('dlBtn').style.display='';
+    }
+}
+
+function doDownload(){
+    if(!zipBlob)return;
+    var flat=collectAll();
+    var pName=(flat.surname||'')+(flat.given_name||'')||'participant';
+    var now=new Date();
+    var ts=now.getFullYear()+''+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(zipBlob);
+    a.download='experiment_'+pName+'_'+ts+'.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+document.addEventListener('change',function(e){if(e.target.classList.contains('invalid'))e.target.classList.remove('invalid');});
+document.addEventListener('input',function(e){if(e.target.classList.contains('invalid'))e.target.classList.remove('invalid');});
+showPage(0);
+
+</script></body></html>
