@@ -285,9 +285,9 @@ container.appendChild(restDiv);
 // Final
 var finDiv=document.createElement('div');finDiv.className='page';finDiv.id='finalPage';
 finDiv.innerHTML='<div class="ty"><h2>实验完成！/ စမ်းသပ်မှု ပြီးဆုံးပါပြီ!</h2><p style="font-size:18px;margin:16px 0">Thank you!</p>'+
-'<div class="warn-box">⚠ <b>请不要关闭此页面！</b>正在打包数据，完成后将自动下载压缩包。<br>⚠ <b>ဤစာမျက်နှာကို မပိတ်ပါနှင့်!</b> ဒေတာ ထုပ်ပိုးနေပါသည်၊ ပြီးဆုံးသောအခါ အလိုအလျောက် ဒေါင်းလုဒ် ရယူပါမည်။</div>'+
+'<div class="warn-box">⚠ <b>请不要关闭此页面！</b>正在打包数据，请确保压缩包下载完成并发给实验者。<br>⚠ <b>ဤစာမျက်နှာကို မပိတ်ပါနှင့်!</b> ဒေတာ ထုပ်ပိုးနေပါသည်၊ ချုံ့ဖိုင် ဒေါင်းလုဒ် ပြီးကြောင်း သေချာစေပြီး စမ်းသပ်သူထံ ပို့ပေးပါ။</div>'+
 '<p style="margin:20px 0;font-size:16px;color:var(--c1)" id="dlStatus">正在生成问卷数据.../မေးခွန်းလွှာ ဒေတာ ဖန်တီးနေသည်...</p>'+
-'<button class="btn btn-go" id="dlBtn" onclick="doDownload()" style="display:none;margin:10px">重新下载/ထပ်မံ ဒေါင်းလုဒ်</button></div>';
+'<button class="btn btn-go" id="dlBtn" onclick="doDownload()" style="display:none;margin:10px">下载压缩包/ချုံ့ဖိုင် ဒေါင်းလုဒ်</button></div>';
 container.appendChild(finDiv);
 
 /* ========== NAV ========== */
@@ -426,7 +426,7 @@ async function packageData(){
             st.textContent='压缩中 '+Math.round(m.percent)+'%.../ချုံ့နေသည် '+Math.round(m.percent)+'%...';
         });
 
-        st.textContent='✓ 数据打包完成！正在下载.../✓ ဒေတာ အဆင်သင့်ဖြစ်ပါပြီ! ဒေါင်းလုဒ် စတင်နေသည်...';
+        st.textContent='✓ 数据打包完成！请点击下载按钮。/✓ ဒေတာ အဆင်သင့်ဖြစ်ပါပြီ! ဒေါင်းလုဒ် ခလုတ်ကို နှိပ်ပါ။';
         document.getElementById('dlBtn').style.display='';
         doDownload();
     }catch(e){
